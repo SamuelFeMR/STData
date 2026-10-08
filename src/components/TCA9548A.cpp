@@ -23,7 +23,7 @@ void TCA9548A::init(i2c_master_bus_handle_t i2c_bus)
     );
 }
 
-void TCA9548A::selectChannel(uint8_t channel)
+esp_err_t TCA9548A::selectChannel(uint8_t channel)
 {
     uint8_t value = 1 << channel;
 
