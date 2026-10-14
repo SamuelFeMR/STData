@@ -3,8 +3,9 @@
 #include "driver/i2c_master.h"
 #include "esp_err.h"
 
-#define TCA9548A_ADDR   0x71
 #define I2C_FREQUENCY 400000
+
+#define TCA9548A_ADDR   0x71
 
 class TCA9548A
 {
@@ -18,5 +19,5 @@ class TCA9548A
         
     private:
         i2c_master_dev_handle_t tca_device;
-        
+
 };  

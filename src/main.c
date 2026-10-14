@@ -559,7 +559,7 @@ static void imu_read(
 
 
     mpu9250_read_accel(
-        &imu->ax,
+        &imu->ax,qa
         &imu->ay,
         &imu->az
     );
@@ -747,12 +747,7 @@ static uint32_t read_blue(void)
 }
 
 
-/*
- * ============================================================
- * CONFIGURA GY-31
- * ============================================================
- */
-
+/* CONFIGURA GY-31*/
 static void color_init(void)
 {
     gpio_config_t output_config =
