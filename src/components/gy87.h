@@ -18,6 +18,9 @@ class MPU6050
         // Read the IMU data considering a TCA channel already linked to the devide.
         esp_err_t read();
 
+        // Magnetometer Bypass for data access 
+        esp_err_t enableBypass();
+
         const float* getAccel();
         const float* getGyro();
     
@@ -65,7 +68,6 @@ class GY87
     public:
         void init(i2c_master_bus_handle_t i2c_bus, TCA9548A& mux, uint8_t channel_mpu, uint8_t channel_hmc);
         esp_err_t read();
-        void bypass();
 
         TCA9548A* mux;
         MPU6050 mpu;
