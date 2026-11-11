@@ -28,5 +28,4 @@ class VL053L0
     private:
         i2c_master_dev_handle_t tof_device;
 
-
 };

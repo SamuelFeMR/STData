@@ -159,8 +159,9 @@ esp_err_t MPU6050::enableBypass()
     );
 }
 
-HMC5883L::init(i2c_master_bus_handle_t i2c_bus)
+esp_err_t HMC5883L::init(i2c_master_bus_handle_t i2c_bus)
 {
+    esp_err_t err;
     if (i2c_bus == nullptr)
         return ESP_ERR_INVALID_ARG;
 
@@ -179,21 +180,21 @@ HMC5883L::init(i2c_master_bus_handle_t i2c_bus)
     // 8 samples averaged, 15 Hz output rate, normal measurement
     data[0] = 0x00;
     data[1] = 0x70;
-    ESP_ERROR_CHECK(i2c_master_transmit( hmc_device, data, sizeof(data), 100));
+    err = i2c_master_transmit( hmc_device, data, sizeof(data), 100);
     if (err != ESP_OK) return err;
 
     // Configuration Register B
     // Gain = +/- 1.3 Ga
     data[0] = 0x01;
     data[1] = 0x20;
-    ESP_ERROR_CHECK(i2c_master_transmit( hmc_device, data, sizeof(data), 100));
+    err = i2c_master_transmit( hmc_device, data, sizeof(data), 100);
     if (err != ESP_OK) return err;
 
     // Mode Register
     // Continuous measurement mode
     data[0] = 0x02;
     data[1] = 0x00;
-    ESP_ERROR_CHECK(i2c_master_transmit( hmc_device, data, sizeof(data), 100));
+    err = i2c_master_transmit( hmc_device, data, sizeof(data), 100);
     if (err != ESP_OK) return err;
 
     vTaskDelay(pdMS_TO_TICKS(10));
@@ -285,7 +286,7 @@ esp_err_t GY87::init(i2c_master_bus_handle_t i2c_bus)
 }
 
 // Com MUX
-GY87::init(i2c_master_bus_handle_t i2c_bus, TCA9548A& mux, uint8_t channel)
+esp_err_t GY87::init(i2c_master_bus_handle_t i2c_bus, TCA9548A& mux, uint8_t channel)
 { esp_err_t GY87::init(
     i2c_master_bus_handle_t i2c_bus,
     TCA9548A& mux,

@@ -13,7 +13,7 @@ class MPU6050
 {
     public:
         // Init for adding a MPU defice on the i2c protocol
-        void init(i2c_master_bus_handle_t i2c_bus);
+        esp_err_t init(i2c_master_bus_handle_t i2c_bus);
 
         // Read the IMU data considering a TCA channel already linked to the devide.
         esp_err_t read();
@@ -45,7 +45,7 @@ class HMC5883L
 {
     public:
         // Init for adding a HMC device on the I2C protocol
-        init(i2c_master_bus_handle_t i2c_bus);
+        esp_err_t init(i2c_master_bus_handle_t i2c_bus);
 
         // Read the HMC data considering a TCA channel already linked to the device
         esp_err_t read();
