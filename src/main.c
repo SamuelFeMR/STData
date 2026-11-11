@@ -220,7 +220,6 @@ static esp_err_t mpu9250_init(void)
         return ESP_ERR_NOT_FOUND;
     }
 
-
     // Reset
     i2c_write_reg(
         mpu_dev,
@@ -232,7 +231,6 @@ static esp_err_t mpu9250_init(void)
         pdMS_TO_TICKS(100)
     );
 
-
     // Clock PLL
     i2c_write_reg(
         mpu_dev,
@@ -240,14 +238,12 @@ static esp_err_t mpu9250_init(void)
         0x01
     );
 
-
     // Ativa acelerometro + gyro
     i2c_write_reg(
         mpu_dev,
         MPU_PWR_MGMT_2,
         0x00
     );
-
 
     // DLPF gyro
     i2c_write_reg(
