@@ -1,14 +1,18 @@
 #include "gy87.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
-void MPU6050::init(i2c_master_bus_handle_t i2c_bus)
+esp_err_t MPU6050::init(i2c_master_bus_handle_t i2c_bus)
 {
     /*
-        0x6B	Wake up/Clock Configuration
-        0x1B	Gyro Scale
-        0x1C	Acc Scale
-        0x1A	Gyro DLPF
-        0x1D	Acc DLPF
+        0x6B Wake up/Clock Configuration
+        0x1B Gyro Scale
+        0x1C Acc Scale
+        0x1A Gyro DLPF
+        0x1D Acc DLPF
     */
+    if (i2c_bus == nullptr)
+        return ESP_ERR_INVALID_ARG;
 
     // Create the device handle at the MPU address
     i2c_device_config_t mpu_config = {
@@ -17,51 +21,62 @@ void MPU6050::init(i2c_master_bus_handle_t i2c_bus)
         .scl_speed_hz = I2C_FREQUENCY
     };
 
-    ESP_ERROR_CHECK(
-        i2c_master_bus_add_device(
-            i2c_bus,
-            &mpu_config,
-            &mpu_device
-        )
-    ); 
+    esp_err_t err = i2c_master_bus_add_device(
+        i2c_bus,
+        &mpu_config,
+        &mpu_device
+    );
 
     if (err != ESP_OK)
         return err;
 
-    // Wake up MPU6050
     uint8_t data[2];
-    
-    // Reset MPU6050
-    data[0] = 0x6B; // PWR_MGMT_1
-    data[1] = 0x80; // Wake up
 
-    ESP_ERROR_CHECK(i2c_master_transmit(mpu_device, data, sizeof(data), 100));
+    // Reset MPU6050
+    data[0] = 0x6B;
+    data[1] = 0x80;
+
+    err = i2c_master_transmit(mpu_device, data, sizeof(data), 100);
+    if (err != ESP_OK) return err;
+
     vTaskDelay(pdMS_TO_TICKS(100));
 
     // Clock source: PLL with X-axis gyroscope reference
     data[0] = 0x6B;
     data[1] = 0x01;
-    ESP_ERROR_CHECK(i2c_master_transmit(mpu_device, data, sizeof(data), 100));
+
+    err = i2c_master_transmit(mpu_device, data, sizeof(data), 100);
+    if (err != ESP_OK) return err;
 
     // Gyroscope scale: ±250 °/s
-    data[0] = 0x1B;   // GYRO_CONFIG
+    data[0] = 0x1B;
     data[1] = 0x00;
-    ESP_ERROR_CHECK(i2c_master_transmit(mpu_device, data, sizeof(data), 100));
+
+    err = i2c_master_transmit(mpu_device, data, sizeof(data), 100);
+    if (err != ESP_OK) return err;
 
     // Accelerometer scale: ±2 g
-    data[0] = 0x1C;   // ACCEL_CONFIG
+    data[0] = 0x1C;
     data[1] = 0x00;
-    ESP_ERROR_CHECK(i2c_master_transmit(mpu_device, data, sizeof(data), 100));
+
+    err = i2c_master_transmit(mpu_device, data, sizeof(data), 100);
+    if (err != ESP_OK) return err;
 
     // Gyroscope DLPF
-    data[0] = 0x1A;   // CONFIG
+    data[0] = 0x1A;
     data[1] = 0x03;
-    ESP_ERROR_CHECK(i2c_master_transmit(mpu_device, data, sizeof(data), 100));
+
+    err = i2c_master_transmit(mpu_device, data, sizeof(data), 100);
+    if (err != ESP_OK) return err;
 
     // Accelerometer DLPF
-    data[0] = 0x1D;   // ACCEL_CONFIG_2
+    data[0] = 0x1D;
     data[1] = 0x03;
-    ESP_ERROR_CHECK(i2c_master_transmit(mpu_device, data, sizeof(data), 100));
+
+    err = i2c_master_transmit(mpu_device, data, sizeof(data), 100);
+    if (err != ESP_OK) return err;
+
+    return ESP_OK;
 }
 
 esp_err_t MPU6050::read()
@@ -88,14 +103,14 @@ esp_err_t MPU6050::read()
     }
 
     // Convert raw accelerometer values
-    int16_t ax_raw = (int16_t)((data[0] << 8) | data[1]);
-    int16_t ay_raw = (int16_t)((data[2] << 8) | data[3]);
-    int16_t az_raw = (int16_t)((data[4] << 8) | data[5]);
+    int16_t ax_raw = (int16_t)(((uint16_t)data[0] << 8) | data[1]);
+    int16_t ay_raw = (int16_t)(((uint16_t)data[2] << 8) | data[3]);
+    int16_t az_raw = (int16_t)(((uint16_t)data[4] << 8) | data[5]);
 
     // Convert raw gyroscope values
-    int16_t gx_raw = (int16_t)((data[8] << 8) | data[9]);
-    int16_t gy_raw = (int16_t)((data[10] << 8) | data[11]);
-    int16_t gz_raw = (int16_t)((data[12] << 8) | data[13]);
+    int16_t gx_raw = (int16_t)(((uint16_t)data[8] << 8) | data[9]);
+    int16_t gy_raw = (int16_t)(((uint16_t)data[10] << 8) | data[11]);
+    int16_t gz_raw = (int16_t)(((uint16_t)data[12] << 8) | data[13]);
 
     // Convert to physical units
     // Accelerometer: ±2 g
@@ -144,8 +159,11 @@ esp_err_t MPU6050::enableBypass()
     );
 }
 
-void HMC5883L::init(i2c_master_bus_handle_t i2c_bus)
+HMC5883L::init(i2c_master_bus_handle_t i2c_bus)
 {
+    if (i2c_bus == nullptr)
+        return ESP_ERR_INVALID_ARG;
+
     // Configure the I2C device
     i2c_device_config_t hmc_config ={
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
@@ -162,20 +180,25 @@ void HMC5883L::init(i2c_master_bus_handle_t i2c_bus)
     data[0] = 0x00;
     data[1] = 0x70;
     ESP_ERROR_CHECK(i2c_master_transmit( hmc_device, data, sizeof(data), 100));
+    if (err != ESP_OK) return err;
 
     // Configuration Register B
     // Gain = +/- 1.3 Ga
     data[0] = 0x01;
     data[1] = 0x20;
     ESP_ERROR_CHECK(i2c_master_transmit( hmc_device, data, sizeof(data), 100));
+    if (err != ESP_OK) return err;
 
     // Mode Register
     // Continuous measurement mode
     data[0] = 0x02;
     data[1] = 0x00;
     ESP_ERROR_CHECK(i2c_master_transmit( hmc_device, data, sizeof(data), 100));
+    if (err != ESP_OK) return err;
 
     vTaskDelay(pdMS_TO_TICKS(10));
+
+    return ESP_OK;
 }
 
 esp_err_t HMC5883L::read()
@@ -233,57 +256,108 @@ esp_err_t HMC5883L::read()
     return ESP_OK;
 }
 
-void GY87::init(i2c_master_bus_handle_t i2c_bus, TCA9548A& mux, uint8_t channel)
+// Sem MUX
+esp_err_t GY87::init(i2c_master_bus_handle_t i2c_bus)
 {
-    // Links a given TCA channel index to the IMU. 
+    this->i2c_bus = i2c_bus;
+
+    mux = nullptr;
+
+    // Initialize MPU6050
+    esp_err_t err = mpu.init(i2c_bus);
+
+    if (err != ESP_OK)
+        return err;
+
+    // Enable I2C bypass
+    err = mpu.enableBypass();
+
+    if (err != ESP_OK)
+        return err;
+
+    // Initialize HMC5883L
+    err = mag.init(i2c_bus);
+
+    if (err != ESP_OK)
+        return err;
+
+    return ESP_OK;
+}
+
+// Com MUX
+GY87::init(i2c_master_bus_handle_t i2c_bus, TCA9548A& mux, uint8_t channel)
+{ esp_err_t GY87::init(
+    i2c_master_bus_handle_t i2c_bus,
+    TCA9548A& mux,
+    uint8_t channel
+)
+{
+    this->i2c_bus = i2c_bus;
     this->mux = &mux;
     this->channel = channel;
 
-    // Creates individual objects for each sensor that makes up the module
-    mpu.init(i2c_bus);
+    // Select the channel before initializing the sensors
+    esp_err_t err = mux.selectChannel(channel);
+
+    if (err != ESP_OK)
+        return err;
+
+    // Initialize MPU6050
+    err = mpu.init(i2c_bus);
+
+    if (err != ESP_OK)
+        return err;
 
     // Enable I2C bypass
-    ESP_ERROR_CHECK(mpu.enableBypass());
+    err = mpu.enableBypass();
 
-    // Initializes the Magnetometer
-    mag.init(i2c_bus);
+    if (err != ESP_OK)
+        return err;
+
+    // Initialize HMC5883L
+    err = mag.init(i2c_bus);
+
+    if (err != ESP_OK)
+        return err;
+
+    return ESP_OK;
+}
 }
 
 esp_err_t GY87::read()
 {
     esp_err_t err;
 
-    // Select MPU6050 channel
-    err = mux->selectChannel(channel_mpu);
-
-    if (err != ESP_OK)
+    // Select MUX channel if available
+    if (mux != nullptr)
     {
-        return err;
+        err = mux->selectChannel(channel);
+
+        if (err != ESP_OK)
+            return err;
     }
 
     // Read MPU6050
     err = mpu.read();
 
     if (err != ESP_OK)
-    { 
         return err;
-    }
-
-    // Select HMC5883L channel
-    err = mux->selectChannel(channel_hmc);
-
-    if (err != ESP_OK)
-    {
-        return err;
-    }
 
     // Read HMC5883L
     err = mag.read();
 
     if (err != ESP_OK)
-    {
         return err;
-    }
 
     return ESP_OK;
+}
+
+MPU6050& GY87::getMPU()
+{
+    return mpu;
+}
+
+HMC5883L& GY87::getMag()
+{
+    return mag;
 }

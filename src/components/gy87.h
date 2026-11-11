@@ -34,7 +34,7 @@ class MPU6050
         // Also allow me to ask for the local_measure_array on externally if that's the buffer array.
 
     private:
-        i2c_master_dev_handle_t mpu_device;
+        i2c_master_dev_handle_t mpu_device = nullptr;
 
         float accel[3];
         float gyro[3];
@@ -45,7 +45,7 @@ class HMC5883L
 {
     public:
         // Init for adding a HMC device on the I2C protocol
-        void init(i2c_master_bus_handle_t i2c_bus);
+        init(i2c_master_bus_handle_t i2c_bus);
 
         // Read the HMC data considering a TCA channel already linked to the device
         esp_err_t read();
@@ -57,7 +57,8 @@ class HMC5883L
         float (*measure_array)[3] = local_measure_array;
 
     private:
-        i2c_master_dev_handle_t hmc_device;
+        i2c_master_dev_handle_t hmc_device = nullptr;
+
 
         // Latest magnetometer measurements
         float mag[3];
@@ -90,6 +91,6 @@ private:
 
     uint8_t channel = 0;
 
-    MPU6050* mpu = nullptr;
-    HMC5883L* mag = nullptr;
+    MPU6050 mpu;
+    HMC5883L mag;
 };
