@@ -52,6 +52,16 @@ Data transmission and logging.
 The system uses the I²C communication protocol to interface with the sensors and peripheral devices.
 The hardware configuration, including GPIO assignments, I²C addresses, and multiplexer channel assignments, is documented below.
 
+### I²C Device Configuration
+
+| Device     | I²C Address | MUX Channel | Description                         |
+| ---------- | ----------- | ----------- | ----------------------------------- |
+| TCA9548A   | `0x70`      | N/A         | I²C multiplexer                     |
+| MPU6050    | `0x68`      | N/A         | Accelerometer and gyroscope         |
+| HMC5883L   | `0x1E`      | N/A         | Magnetometer                        |
+| VL53L0X #1 | `0x29`      | 0           | Time-of-Flight distance sensor      |
+| VL53L0X #2 | `0x29`      | 1           | Time-of-Flight distance sensor      |
+
 ### ESP32 Pin Assignments
 
 | Signal | ESP32 Pin | Description             |
@@ -60,15 +70,6 @@ The hardware configuration, including GPIO assignments, I²C addresses, and mult
 | SCL    |    TBD    | I²C serial clock line   |
 | VCC    |    TBD    | Power supply connection |
 | GND    |    TBD    | Ground reference        |
-
-### I²C Device Configuration
-
-| Device   | I²C Address | MUX Channel | Description                         |
-| -------- | ----------- | ----------- | ----------------------------------- |
-| TCA9548A |     TBD     |      —      | I²C multiplexer                     |
-| GY-87    |     TBD     |     TBD     | Inertial and magnetic sensor module |
-| MPU6050  |     TBD     |     TBD     | Accelerometer and gyroscope         |
-| HMC5883L |     TBD     |     TBD     | Magnetometer                        |
 
 **Note:** Pin assignments, I²C addresses, and multiplexer channels must be updated according to the actual hardware configuration. Devices connected behind the TCA9548A may use the same I²C address if they are on different channels.
 

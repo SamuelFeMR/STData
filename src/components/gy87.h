@@ -65,16 +65,31 @@ class HMC5883L
 
 class GY87
 {
-    public:
-        void init(i2c_master_bus_handle_t i2c_bus, TCA9548A& mux, uint8_t channel_mpu, uint8_t channel_hmc);
-        esp_err_t read();
+public:
 
-        TCA9548A* mux;
-        MPU6050 mpu;
-        HMC5883L mag;
+    // Inicialização sem multiplexador
+    esp_err_t init(i2c_master_bus_handle_t i2c_bus);
 
-    private:
-        uint8_t channel_mpu = 0;
-        uint8_t channel_hmc = 0;
+    // Inicialização com multiplexador
+    esp_err_t init(i2c_master_bus_handle_t i2c_bus, TCA9548A& mux, uint8_t channel);
 
+    // Leitura completa do módulo
+    esp_err_t read();
+
+    // Acesso aos dados do acelerômetro e giroscópio
+    MPU6050& getMPU();
+
+    // Acesso aos dados do magnetômetro
+    HMC5883L& getMag();
+
+private:
+
+    i2c_master_bus_handle_t i2c_bus = nullptr;
+
+    TCA9548A* mux = nullptr;
+
+    uint8_t channel = 0;
+
+    MPU6050* mpu = nullptr;
+    HMC5883L* mag = nullptr;
 };

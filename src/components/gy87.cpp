@@ -11,8 +11,7 @@ void MPU6050::init(i2c_master_bus_handle_t i2c_bus)
     */
 
     // Create the device handle at the MPU address
-    i2c_device_config_t mpu_config =
-    {
+    i2c_device_config_t mpu_config = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
         .device_address = MPU6050_ADDR,
         .scl_speed_hz = I2C_FREQUENCY
@@ -26,100 +25,43 @@ void MPU6050::init(i2c_master_bus_handle_t i2c_bus)
         )
     ); 
 
-    // Wake up MPU6050
-    uint8_t data[] = {
-        0x6B,   // PWR_MGMT_1
-        0x00    // Wake up
-    };
+    if (err != ESP_OK)
+        return err;
 
-    ESP_ERROR_CHECK(
-        i2c_master_transmit(
-            mpu_device,
-            data,
-            sizeof(data),
-            100
-        )
-    );
+    // Wake up MPU6050
+    uint8_t data[2];
+    
+    // Reset MPU6050
+    data[0] = 0x6B; // PWR_MGMT_1
+    data[1] = 0x80; // Wake up
+
+    ESP_ERROR_CHECK(i2c_master_transmit(mpu_device, data, sizeof(data), 100));
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    // Clock source: PLL with X-axis gyroscope reference
+    data[0] = 0x6B;
+    data[1] = 0x01;
+    ESP_ERROR_CHECK(i2c_master_transmit(mpu_device, data, sizeof(data), 100));
 
     // Gyroscope scale: ±250 °/s
     data[0] = 0x1B;   // GYRO_CONFIG
     data[1] = 0x00;
-
-    ESP_ERROR_CHECK(
-        i2c_master_transmit(
-            mpu_device,
-            data,
-            sizeof(data),
-            100
-        )
-    );
+    ESP_ERROR_CHECK(i2c_master_transmit(mpu_device, data, sizeof(data), 100));
 
     // Accelerometer scale: ±2 g
     data[0] = 0x1C;   // ACCEL_CONFIG
     data[1] = 0x00;
-
-    ESP_ERROR_CHECK(
-        i2c_master_transmit(
-            mpu_device,
-            data,
-            sizeof(data),
-            100
-        )
-    );
+    ESP_ERROR_CHECK(i2c_master_transmit(mpu_device, data, sizeof(data), 100));
 
     // Gyroscope DLPF
     data[0] = 0x1A;   // CONFIG
     data[1] = 0x03;
-
-    ESP_ERROR_CHECK(
-        i2c_master_transmit(
-            mpu_device,
-            data,
-            sizeof(data),
-            100
-        )
-    );
+    ESP_ERROR_CHECK(i2c_master_transmit(mpu_device, data, sizeof(data), 100));
 
     // Accelerometer DLPF
     data[0] = 0x1D;   // ACCEL_CONFIG_2
     data[1] = 0x03;
-
-    ESP_ERROR_CHECK(
-        i2c_master_transmit(
-            mpu_device,
-            data,
-            sizeof(data),
-            100
-        )
-    );
-
-    // Reset
-    data[0] = 0x6B;
-    data[1] = 0x80;
-
-    ESP_ERROR_CHECK(
-        i2c_master_transmit(
-            mpu_device,
-            data,
-            2,
-            100
-        )
-    );
-
-    vTaskDelay(pdMS_TO_TICKS(100));
-
-    // Select gyro X PLL clock
-    data[0] = 0x6B;
-    data[1] = 0x01;
-
-    ESP_ERROR_CHECK(
-        i2c_master_transmit(
-            mpu_device,
-            data,
-            2,
-            100
-        )
-    );
+    ESP_ERROR_CHECK(i2c_master_transmit(mpu_device, data, sizeof(data), 100));
 }
 
 esp_err_t MPU6050::read()
@@ -205,20 +147,13 @@ esp_err_t MPU6050::enableBypass()
 void HMC5883L::init(i2c_master_bus_handle_t i2c_bus)
 {
     // Configure the I2C device
-    i2c_device_config_t hmc_config =
-    {
+    i2c_device_config_t hmc_config ={
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
         .device_address = 0x1E,
         .scl_speed_hz = I2C_FREQUENCY
     };
 
-    ESP_ERROR_CHECK(
-        i2c_master_bus_add_device(
-            i2c_bus,
-            &hmc_config,
-            &hmc_device
-        )
-    );
+    ESP_ERROR_CHECK(i2c_master_bus_add_device( i2c_bus, &hmc_config, &hmc_device));
 
     uint8_t data[2];
 
@@ -226,43 +161,19 @@ void HMC5883L::init(i2c_master_bus_handle_t i2c_bus)
     // 8 samples averaged, 15 Hz output rate, normal measurement
     data[0] = 0x00;
     data[1] = 0x70;
-
-    ESP_ERROR_CHECK(
-        i2c_master_transmit(
-            hmc_device,
-            data,
-            sizeof(data),
-            100
-        )
-    );
+    ESP_ERROR_CHECK(i2c_master_transmit( hmc_device, data, sizeof(data), 100));
 
     // Configuration Register B
     // Gain = +/- 1.3 Ga
     data[0] = 0x01;
     data[1] = 0x20;
-
-    ESP_ERROR_CHECK(
-        i2c_master_transmit(
-            hmc_device,
-            data,
-            sizeof(data),
-            100
-        )
-    );
+    ESP_ERROR_CHECK(i2c_master_transmit( hmc_device, data, sizeof(data), 100));
 
     // Mode Register
     // Continuous measurement mode
     data[0] = 0x02;
     data[1] = 0x00;
-
-    ESP_ERROR_CHECK(
-        i2c_master_transmit(
-            hmc_device,
-            data,
-            sizeof(data),
-            100
-        )
-    );
+    ESP_ERROR_CHECK(i2c_master_transmit( hmc_device, data, sizeof(data), 100));
 
     vTaskDelay(pdMS_TO_TICKS(10));
 }
@@ -322,12 +233,11 @@ esp_err_t HMC5883L::read()
     return ESP_OK;
 }
 
-void GY87::init(i2c_master_bus_handle_t i2c_bus, TCA9548A& mux, uint8_t channel_mpu, uint8_t channel_hmc)
+void GY87::init(i2c_master_bus_handle_t i2c_bus, TCA9548A& mux, uint8_t channel)
 {
     // Links a given TCA channel index to the IMU. 
     this->mux = &mux;
-    this->channel_mpu = channel_mpu;
-    this->channel_hmc = channel_hmc;
+    this->channel = channel;
 
     // Creates individual objects for each sensor that makes up the module
     mpu.init(i2c_bus);
@@ -337,7 +247,6 @@ void GY87::init(i2c_master_bus_handle_t i2c_bus, TCA9548A& mux, uint8_t channel_
 
     // Initializes the Magnetometer
     mag.init(i2c_bus);
-
 }
 
 esp_err_t GY87::read()
@@ -364,14 +273,17 @@ esp_err_t GY87::read()
     err = mux->selectChannel(channel_hmc);
 
     if (err != ESP_OK)
+    {
         return err;
+    }
 
     // Read HMC5883L
     err = mag.read();
 
     if (err != ESP_OK)
+    {
         return err;
-
+    }
 
     return ESP_OK;
 }
