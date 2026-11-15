@@ -7,4 +7,7 @@ idf_component_register(
     SRCS ${app_sources}
     REQUIRES
         vl53l0x
+        esp_driver_gpio
+        esp_driver_pcnt
+        esp_timer
 )
