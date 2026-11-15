@@ -8,7 +8,7 @@ void i2cManage::init(void)
         .sda_io_num = I2C_SDA,
         .scl_io_num = I2C_SCL,
         .glitch_ignore_cnt = 7,
-        .flags.enable_internal_pullup = true,
+        .flags = {.enable_internal_pullup = true},
     };
 
     ESP_ERROR_CHECK(
