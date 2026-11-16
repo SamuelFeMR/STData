@@ -1,0 +1,58 @@
+# GY-87 Sensor Test
+
+This example demonstrates how to initialize and read the sensors integrated into the GY-87 module using the ESP32 and the ESP-IDF framework.
+
+## Sensors
+
+The tested module contains two I²C devices:
+
+| Sensor | Function | I²C Address |
+|---|---|---|
+| MPU6050 | 3-axis accelerometer and 3-axis gyroscope | `0x68` |
+| QMC5883L | 3-axis magnetometer | `0x0D` |
+
+**Note:** This hardware configuration uses the QMC5883L magnetometer instead of the HMC5883L.
+
+## Hardware Connections
+
+| GY-87 Pin | ESP32 Pin |
+|---|---|
+| VCC | 3.3V |
+| GND | GND |
+| SDA | GPIO 21 |
+| SCL | GPIO 22 |
+
+The module is connected directly to the ESP32 I²C bus. No TCA9548A multiplexer is required when using a single GY-87 module.
+
+## Test Features
+
+The example performs the following operations:
+
+1. Initializes the I²C bus.
+2. Initializes the MPU6050.
+3. Enables I²C bypass to access the magnetometer.
+4. Initializes the QMC5883L.
+5. Reads accelerometer, gyroscope, and magnetometer measurements.
+6. Prints the measurements to the serial monitor.
+
+## Serial Output
+
+The example periodically displays:
+
+| Measurement | Unit |
+|---|---|
+| Accelerometer X, Y, Z | g |
+| Gyroscope X, Y, Z | °/s |
+| Magnetometer X, Y, Z | Raw values |
+
+The accelerometer should measure approximately 1 g along the axis aligned with gravity when the module is stationary.
+
+Gyroscope readings should remain close to zero when the module is not rotating.
+
+Magnetometer readings depend on the module's orientation and surrounding magnetic environment.
+
+## Notes
+
+- The magnetometer measurements are raw and have not been calibrated.
+- Magnetic interference from nearby electronic components may affect the readings.
+- The example uses the GY-87 driver implemented in `src/components/gy87.cpp` and `src/components/gy87.h`.

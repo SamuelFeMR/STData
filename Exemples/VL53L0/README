@@ -1,0 +1,62 @@
+# VL53L0X Distance Sensor Test
+
+This example demonstrates how to initialize and read two VL53L0X Time-of-Flight distance sensors using an ESP32 and a TCA9548A I²C multiplexer.
+
+## Hardware
+
+| Component | Function | I²C Address |
+|---|---|---|
+| ESP32 | Main microcontroller | — |
+| TCA9548A | I²C multiplexer | `0x70` |
+| VL53L0X #1 | Distance measurement | `0x29` |
+| VL53L0X #2 | Distance measurement | `0x29` |
+
+Both VL53L0X sensors use the same default I²C address. Therefore, the TCA9548A is required to access them independently.
+
+## Hardware Connections
+
+### ESP32 to TCA9548A
+
+| TCA9548A Pin | ESP32 Pin |
+|---|---|
+| SDA | GPIO 21 |
+| SCL | GPIO 22 |
+| VIN | 3.3V |
+| GND | GND |
+
+### TCA9548A to VL53L0X Sensors
+
+| TCA9548A Channel | Sensor |
+|---|---|
+| Channel 1 | VL53L0X #1 |
+| Channel 2 | VL53L0X #2 |
+
+Both sensors share the same I²C address (`0x29`), but are connected to separate multiplexer channels.
+
+## Test Features
+
+The example performs the following operations:
+
+1. Initializes the ESP32 I²C bus.
+2. Initializes the TCA9548A multiplexer.
+3. Selects the appropriate multiplexer channel.
+4. Initializes each VL53L0X sensor.
+5. Performs the required sensor initialization and calibration procedures.
+6. Reads distance measurements from both sensors.
+7. Prints the results to the serial monitor.
+
+The multiplexer channel must be selected before communicating with each sensor.
+
+## Serial Output
+
+The serial monitor displays the measured distance from each sensor.
+
+Distance measurements are provided in millimeters (mm).
+
+## Notes
+
+- The example uses the VL53L0X ESP-IDF driver included in the project's `components/vl53l0x/` directory.
+- Both sensors must be connected to different TCA9548A channels.
+- The multiplexer address is configured as `0x70`.
+- The `XSHUT` and `GPIO1` pins are not controlled by the ESP32 in the current hardware configuration.
+- Sensor readings may be affected by target surface properties, ambient light, and sensor orientation.

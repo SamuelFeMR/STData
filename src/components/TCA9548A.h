@@ -5,7 +5,7 @@
 
 #define I2C_FREQUENCY 400000
 
-#define TCA9548A_ADDR   0x71
+#define TCA9548A_ADDR   0x70
 
 class TCA9548A
 {

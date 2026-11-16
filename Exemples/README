@@ -1,0 +1,36 @@
+# Sensor Test Examples
+
+This directory contains standalone firmware examples for testing the sensors used in the STData project.
+
+Each example focuses on a specific sensor or module and can be used to verify hardware connections, communication, initialization, and data acquisition.
+
+## Available Examples
+
+| Directory | Sensor | Description |
+|---|---|---|
+| `GY87/` | GY-87 | Tests the MPU6050 and QMC5883L sensors. |
+| `VL53L0X/` | VL53L0X | Tests two Time-of-Flight distance sensors through the TCA9548A multiplexer. |
+| `TCS3200/` | TCS3200 | Tests RGB color detection using frequency measurements. |
+
+## How to Use
+
+These examples are provided as reference code and are not part of the main firmware compilation.
+
+To run an example:
+
+1. Open the desired example directory.
+2. Copy its `main.cpp` file.
+3. Temporarily replace the project's `src/main.cpp` with the copied file.
+4. Build and upload the firmware using PlatformIO.
+5. Open the serial monitor to inspect the sensor readings.
+
+**Important:** Only one `app_main()` function can be compiled into the firmware at a time. Do not place example source files inside the `src/` directory, as they may be included in the main build.
+
+## Notes
+
+- The examples use the ESP-IDF framework.
+- GPIO assignments and communication settings follow the current STData hardware configuration.
+- Some examples depend on project modules located in `src/components/`.
+- Hardware connections should be checked before powering the system.
+
+These examples are intended for debugging, hardware validation, and future development.

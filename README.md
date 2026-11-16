@@ -146,6 +146,7 @@ STData/
 |   ├── components/             # Hardware components
 |   |   ├── gy87.cpp            # Inertial module
 |   |   ├── TCA9548A.cpp        # i2c Mux module
+|   |   ├── TCS3200.cpp         # RGB Color Sensor
 |   |   └── 
 |   |
 |   ├── 12cManage.cpp           # i2c protocol initialization and handling
@@ -155,8 +156,6 @@ STData/
 ├── platformio.ini    # Build configuration
 └── README.md         # Project documentation
 
-
-
 # Main Modules
 
 | Classes                    | Responsibility                                                          |
@@ -165,8 +164,6 @@ STData/
 | HMC5883L                   | Magnetic field measurements                                             |
 | GY-87                      | Integration and management of the sensors available on the GY-87 module |
 | I²C Multiplexer (TCA9548A) | Communication with devices connected to separate I²C channels           |
-
-
 
 # Getting Started
 

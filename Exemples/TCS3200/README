@@ -1,0 +1,86 @@
+# TCS3200 Color Sensor Test
+
+This example demonstrates how to initialize and read RGB color measurements from a TCS3200 color sensor using an ESP32 and the ESP-IDF framework.
+
+## Sensor Overview
+
+The TCS3200 is a programmable color sensor that converts light intensity into a square-wave output signal.
+
+By selecting different internal color filters, the sensor provides frequency measurements corresponding to red, green, and blue light intensity.
+
+## Hardware Connections
+
+| TCS3200 Pin | ESP32 Pin | Function |
+|---|---|---|
+| VCC | 3.3V | Power supply |
+| GND | GND | Ground |
+| OUT | GPIO 18 | Frequency output |
+| S2 | GPIO 19 | Color filter selection |
+| S3 | GPIO 16 | Color filter selection |
+| S0 | GPIO 23 | Output frequency scaling |
+| S1 | GPIO 4 | Output frequency scaling |
+| LED | GPIO 17 | Illumination control |
+
+**Important:** Ensure that the sensor's OUT signal does not exceed the ESP32 GPIO input voltage limit of 3.3V.
+
+## Configuration
+
+The example uses the following settings:
+
+| Parameter | Configuration |
+|---|---|
+| Frequency scaling | 20% |
+| Measurement method | Pulse counting (PCNT) |
+| Measurement window | 100 ms per color channel |
+| Color channels | Red, Green, Blue |
+
+The ESP32 PCNT peripheral counts the rising edges of the sensor output signal during a fixed measurement window.
+
+The measured pulse count is then used to calculate the output frequency in hertz (Hz).
+
+## Test Features
+
+The example performs the following operations:
+
+1. Configures the sensor control pins.
+2. Initializes the PCNT peripheral.
+3. Enables the sensor illumination LED.
+4. Selects the red, green, and blue filters.
+5. Measures the output frequency for each channel.
+6. Calculates normalized RGB values.
+7. Prints the results to the serial monitor.
+
+## Serial Output
+
+The example displays two sets of measurements:
+
+**Frequency measurements:**
+- Red frequency (Hz)
+- Green frequency (Hz)
+- Blue frequency (Hz)
+
+**Normalized RGB values:**
+- Red (0–255)
+- Green (0–255)
+- Blue (0–255)
+
+The RGB values are normalized relative to the highest measured frequency.
+
+## Testing Procedure
+
+To verify sensor operation:
+
+1. Point the sensor toward a white surface.
+2. Point it toward a red surface.
+3. Point it toward a green surface.
+4. Point it toward a blue surface.
+5. Observe how the measured frequencies change.
+
+The response of each channel should vary according to the color and reflectance of the target surface.
+
+## Notes
+
+- RGB values are relative normalized measurements, not calibrated colorimetric values.
+- Ambient lighting and distance from the target can affect the readings.
+- The example uses the TCS3200 driver implemented in `src/components/TCS3200.cpp` and `src/components/TCS3200.h`.
+- Each complete RGB reading takes approximately 300 ms, excluding additional delays.

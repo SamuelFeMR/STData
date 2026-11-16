@@ -41,10 +41,10 @@ class MPU6050
 
 };
 
-class HMC5883L
+class QMC5883L
 {
     public:
-        // Init for adding a HMC device on the I2C protocol
+        // Init for adding a QMC5883L device on the I2C protocol
         esp_err_t init(i2c_master_bus_handle_t i2c_bus);
 
         // Read the HMC data considering a TCA channel already linked to the device
@@ -57,7 +57,7 @@ class HMC5883L
         float (*measure_array)[3] = local_measure_array;
 
     private:
-        i2c_master_dev_handle_t hmc_device = nullptr;
+        i2c_master_dev_handle_t qmc_device = nullptr;
 
 
         // Latest magnetometer measurements
@@ -81,7 +81,7 @@ public:
     MPU6050& getMPU();
 
     // Acesso aos dados do magnetômetro
-    HMC5883L& getMag();
+    QMC5883L& getMag();
 
 private:
 
@@ -92,5 +92,5 @@ private:
     uint8_t channel = 0;
 
     MPU6050 mpu;
-    HMC5883L mag;
+    QMC5883L mag;
 };
