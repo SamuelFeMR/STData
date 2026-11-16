@@ -401,3 +401,13 @@ QMC5883L& GY87::getMag()
 {
     return mag;
 }
+
+const float* MPU6050::getAccel()
+{
+    return accel;
+}
+
+const float* MPU6050::getGyro()
+{
+    return gyro;
+}
