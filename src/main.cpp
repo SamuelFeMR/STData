@@ -6,6 +6,7 @@
 
 #include "esp_err.h"
 #include "esp_timer.h"
+#include "esp_log.h"
 
 #include "i2cManage.h"
 #include "components/TCA9548A.h"
@@ -31,6 +32,16 @@
 #define SERIAL_TASK_PRIORITY    1
 
 #define SERIAL_PERIOD_MS 20
+
+// IMU read period: 5 ms = 200 Hz (QMC5883L ODR is 200 Hz,
+// MPU6050 DLPF limits bandwidth to ~44 Hz; faster reads only load the bus)
+#define IMU_PERIOD_MS 5
+
+// Short pause between ToF cycles so the bus is not 100% busy
+#define TOF_PAUSE_MS 2
+
+// Consecutive I2C failures before trying to recover the bus
+#define I2C_FAILS_BEFORE_RECOVER 3
 
 // =====================================================
 // HARDWARE OBJECTS
@@ -199,9 +210,27 @@ static esp_err_t readVL53L0X(
 // IMU TASK - CORE 0
 static void imuTask(void* parameter)
 {
+    TickType_t last_wake = xTaskGetTickCount();
+    int fail_count = 0;
+
     while (true)
     {
         esp_err_t err = IMU.read();
+
+        // A single NACK is usually noise: retry once before reporting failure
+        if (err != ESP_OK)
+            err = IMU.read();
+
+        if (err == ESP_OK)
+        {
+            fail_count = 0;
+        }
+        else if (++fail_count >= I2C_FAILS_BEFORE_RECOVER)
+        {
+            printf("# I2C recover (IMU): %s\n", esp_err_to_name(err));
+            I2CDevice.recover();
+            fail_count = 0;
+        }
 
         if (err == ESP_OK)
         {
@@ -237,8 +266,8 @@ static void imuTask(void* parameter)
             portEXIT_CRITICAL(&data_mutex);
         }
 
-        // Short interval to yield CPU time
-        vTaskDelay(pdMS_TO_TICKS(1));
+        // Fixed-rate reading
+        vTaskDelayUntil(&last_wake, pdMS_TO_TICKS(IMU_PERIOD_MS));
     }
 }
 
@@ -248,6 +277,8 @@ static void distanceTask(void* parameter)
 {
     uint16_t distance_1 = 0;
     uint16_t distance_2 = 0;
+
+    int fail_count = 0;
 
     while (true)
     {
@@ -283,8 +314,25 @@ static void distanceTask(void* parameter)
 
         portEXIT_CRITICAL(&data_mutex);
 
-        // No additional delay:
-        // the sensor measurement time determines the acquisition rate.
+        // If both sensors keep failing, the bus is probably stuck
+        // (a slave holding SDA low). Recover it instead of timing out forever.
+        if (err_1 != ESP_OK && err_2 != ESP_OK)
+        {
+            if (++fail_count >= I2C_FAILS_BEFORE_RECOVER)
+            {
+                printf("# I2C recover (ToF): %s / %s\n",
+                    esp_err_to_name(err_1), esp_err_to_name(err_2));
+                I2CDevice.recover();
+                fail_count = 0;
+            }
+        }
+        else
+        {
+            fail_count = 0;
+        }
+
+        // Leave the bus free for a moment between cycles
+        vTaskDelay(pdMS_TO_TICKS(TOF_PAUSE_MS));
     }
 }
 
@@ -411,6 +459,12 @@ extern "C" void app_main(void)
     ESP_ERROR_CHECK(COLOR.init());
 
     printf("All sensors initialized successfully.\n");
+
+    // From here on, I2C errors are handled by the tasks (retry + bus recovery).
+    // Silence the driver logs so they don't flood/break the CSV output.
+    // Recovery events are printed as lines starting with '#'.
+    esp_log_level_set("i2c.master", ESP_LOG_NONE);
+    esp_log_level_set("vl53l0x_idf", ESP_LOG_NONE);
 
     printf("Starting acquisition tasks...\n\n");
 
